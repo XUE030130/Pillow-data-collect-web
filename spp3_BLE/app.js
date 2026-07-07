@@ -3121,14 +3121,18 @@
 
 			resetSupineBaselineBtn?.addEventListener('click', function () {
 				if (resetToStartupBaseline()) {
+					setHeightInputValue(numberInput1, HEIGHT_LIMITS.HEAD.min, "HEAD");
+					setHeightInputValue(numberInput2, HEIGHT_LIMITS.NECK.min, "NECK");
+					markMicroDirty("S");
 					if (microSupineHint) {
-						microSupineHint.textContent = "Reset 已送出，保留目前仰躺目標高度；待回到基準後請按確定調整。";
+						microSupineHint.textContent = "Reset 已送出，仰躺高度已設為 Head 7.0 / Neck 10.0；待回到基準後請按確定調整。";
 					}
 				}
 			});
 
 			resetSideBaselineBtn?.addEventListener('click', function () {
 				if (resetToStartupBaseline()) {
+					markMicroDirty("L");
 					if (microSideHint) {
 						microSideHint.textContent = "Reset 已送出，保留目前側躺目標高度；待回到基準後請按確定調整。";
 					}
