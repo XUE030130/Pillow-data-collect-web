@@ -3014,10 +3014,10 @@
 				return sendEspManualCommand(`MANUAL,STARTUP,${head},${neck}`, pendingMessage);
 			}
 
-			function resetToStartupBaseline(headInput, neckInput) {
-				const head = setHeightInputValue(headInput, HEIGHT_LIMITS.HEAD.min, "HEAD");
-				const neck = setHeightInputValue(neckInput, HEIGHT_LIMITS.NECK.min, "NECK");
-				return sendStartupFlow(head, neck, "Reset 已送出，回到 Head 7.0 / Neck 10.0 開機基準");
+			function resetToStartupBaseline() {
+				const head = formatHeightValue(HEIGHT_LIMITS.HEAD.min);
+				const neck = formatHeightValue(HEIGHT_LIMITS.NECK.min);
+				return sendStartupFlow(head, neck, "Reset 已送出，電控盒正在回到 Head 7.0 / Neck 10.0 開機基準");
 			}
 
 			openModalBtn.addEventListener('click', function () {
@@ -3120,19 +3120,17 @@
 			});
 
 			resetSupineBaselineBtn?.addEventListener('click', function () {
-				if (resetToStartupBaseline(numberInput1, numberInput2)) {
-					markMicroDirty("S");
+				if (resetToStartupBaseline()) {
 					if (microSupineHint) {
-						microSupineHint.textContent = "Reset 已送出，已回到 Head 7.0 / Neck 10.0 基準；若要作為仰躺高度，請按確定調整。";
+						microSupineHint.textContent = "Reset 已送出，保留目前仰躺目標高度；待回到基準後請按確定調整。";
 					}
 				}
 			});
 
 			resetSideBaselineBtn?.addEventListener('click', function () {
-				if (resetToStartupBaseline(numberInput3, numberInput4)) {
-					markMicroDirty("L");
+				if (resetToStartupBaseline()) {
 					if (microSideHint) {
-						microSideHint.textContent = "Reset 已送出，已回到 Head 7.0 / Neck 10.0 基準；若要作為側躺高度，請按確定調整。";
+						microSideHint.textContent = "Reset 已送出，保留目前側躺目標高度；待回到基準後請按確定調整。";
 					}
 				}
 			});
