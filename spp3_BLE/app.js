@@ -2975,6 +2975,8 @@
 			});
 
 			const microDirty = { S: false, L: false };
+			const pendingStartupReset = { S: false, L: false };
+			const RESET_TARGET_SEND_DELAY_MS = 500;
 
 			function markMicroDirty(mode, dirty = true) {
 				microDirty[mode] = dirty;
@@ -3001,23 +3003,55 @@
 				if (!head || !neck) {
 					return false;
 				}
-				sendCommand(`SET,NORM,${condition},${mode},HEAD,${head}`);
-				sendCommand(`SET,NORM,${condition},${mode},NECK,${neck}`);
+				sendHeightPairCommands(condition, mode, head, neck);
 				if (markClean) {
 					markClean();
 				}
 				return true;
 			}
 
+			function sendHeightPairCommands(condition, mode, head, neck) {
+				sendCommand(`SET,NORM,${condition},${mode},HEAD,${head}`);
+				sendCommand(`SET,NORM,${condition},${mode},NECK,${neck}`);
+			}
+
+			function confirmHeightPair(condition, mode, headInput, neckInput, markClean) {
+				const head = setHeightInputValue(headInput, headInput?.value, "HEAD");
+				const neck = setHeightInputValue(neckInput, neckInput?.value, "NECK");
+				if (!head || !neck) {
+					return false;
+				}
+				if (!pendingStartupReset[mode]) {
+					sendHeightPairCommands(condition, mode, head, neck);
+					if (markClean) {
+						markClean();
+					}
+					return true;
+				}
+
+				const baselineHead = formatHeightValue(HEIGHT_LIMITS.HEAD.min);
+				const baselineNeck = formatHeightValue(HEIGHT_LIMITS.NECK.min);
+				if (!sendStartupFlow(baselineHead, baselineNeck, "確認已送出，電控盒會先回到開機基準，再套用目標高度")) {
+					return false;
+				}
+				pendingStartupReset[mode] = false;
+				setTimeout(() => {
+					sendHeightPairCommands(condition, mode, head, neck);
+					if (markClean) {
+						markClean();
+					}
+				}, RESET_TARGET_SEND_DELAY_MS);
+				return true;
+			}
+
+			function markStartupResetPending(mode) {
+				pendingStartupReset[mode] = true;
+				markMicroDirty(mode);
+			}
+
 			function sendStartupFlow(head, neck, pendingMessage) {
 				resetAutoControlStartState();
 				return sendEspManualCommand(`MANUAL,STARTUP,${head},${neck}`, pendingMessage);
-			}
-
-			function resetToStartupBaseline() {
-				const head = formatHeightValue(HEIGHT_LIMITS.HEAD.min);
-				const neck = formatHeightValue(HEIGHT_LIMITS.NECK.min);
-				return sendStartupFlow(head, neck, "Reset 已送出，電控盒正在回到 Head 7.0 / Neck 10.0 開機基準");
 			}
 
 			openModalBtn.addEventListener('click', function () {
@@ -3037,6 +3071,7 @@
 				sendCommand("INIT,NORM,S");
 				if (parsedData.HSF) setHeightInputValue(numberInput1, parsedData.HSF, "HEAD");
 				if (parsedData.N1SF) setHeightInputValue(numberInput2, parsedData.N1SF, "NECK");
+				pendingStartupReset.S = false;
 				markMicroDirty("S", false);
 			});
 
@@ -3053,6 +3088,7 @@
 					screen3.style.display = 'block';
 					if (parsedData.HLF) setHeightInputValue(numberInput3, parsedData.HLF, "HEAD");
 					if (parsedData.N1LF) setHeightInputValue(numberInput4, parsedData.N1LF, "NECK");
+					pendingStartupReset.L = false;
 					markMicroDirty("L", false);
 				}, 1000); // 等待1秒钟
 
@@ -3112,30 +3148,28 @@
 			});
 
 			confirmSupineAdjustBtn?.addEventListener('click', function () {
-				sendHeightPair(selectedCondition || "1", "S", numberInput1, numberInput2, () => markMicroDirty("S", false));
+				confirmHeightPair(selectedCondition || "1", "S", numberInput1, numberInput2, () => markMicroDirty("S", false));
 			});
 
 			confirmSideAdjustBtn?.addEventListener('click', function () {
-				sendHeightPair(selectedCondition || "1", "L", numberInput3, numberInput4, () => markMicroDirty("L", false));
+				confirmHeightPair(selectedCondition || "1", "L", numberInput3, numberInput4, () => markMicroDirty("L", false));
 			});
 
 			resetSupineBaselineBtn?.addEventListener('click', function () {
-				if (resetToStartupBaseline()) {
-					setHeightInputValue(numberInput1, HEIGHT_LIMITS.HEAD.min, "HEAD");
-					setHeightInputValue(numberInput2, HEIGHT_LIMITS.NECK.min, "NECK");
-					markMicroDirty("S");
-					if (microSupineHint) {
-						microSupineHint.textContent = "Reset 已送出，仰躺高度已設為 Head 7.0 / Neck 10.0；待回到基準後請按確定調整。";
-					}
+				setHeightInputValue(numberInput1, HEIGHT_LIMITS.HEAD.min, "HEAD");
+				setHeightInputValue(numberInput2, HEIGHT_LIMITS.NECK.min, "NECK");
+				markStartupResetPending("S");
+				if (microSupineHint) {
+					microSupineHint.textContent = "Reset 已暫存，仰躺高度已設為 Head 7.0 / Neck 10.0；按確定調整後才會送出。";
 				}
 			});
 
 			resetSideBaselineBtn?.addEventListener('click', function () {
-				if (resetToStartupBaseline()) {
-					markMicroDirty("L");
-					if (microSideHint) {
-						microSideHint.textContent = "Reset 已送出，保留目前側躺目標高度；待回到基準後請按確定調整。";
-					}
+				if (parsedData.HLF) setHeightInputValue(numberInput3, parsedData.HLF, "HEAD");
+				if (parsedData.N1LF) setHeightInputValue(numberInput4, parsedData.N1LF, "NECK");
+				markStartupResetPending("L");
+				if (microSideHint) {
+					microSideHint.textContent = "Reset 已暫存，側躺高度已設為個資計算目標；按確定調整後才會送出。";
 				}
 			});
 
