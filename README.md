@@ -4,12 +4,12 @@
 
 本分支與本 README 基於 ESP32 韌體 `pose_pre_v3.1` 進行修改。Web 端已對應 `pose_pre_v3.1` 的高度上下限、0.5 cm 高度步進、手動/自動分類模式、ESP32 Manual 控制、壓力/高度監測、右側線圖監測與指令合輯。
 
-修改日期時間：`2026-06-29 15:56:41 CST (+0800)`
+修改日期時間：`2026-07-07 16:08:44 CST (+0800)`
 
 ## 對應版本
 
 - Web repo：`XUE030130/Pillow-data-collect-web`
-- Web branch：`spp3_BLE_cls_pre_v3.1`
+- Web branch：`spp3_BLE_cls_pre_v3.1-1`
 - ESP32 repo：`XUE030130/ipillow`
 - ESP32 branch：`pose_pre_v3.1`
 - 主要 Web 目錄：`spp3_BLE/`
@@ -165,6 +165,14 @@ S01_APL-BSHS_ACT-BSHS_R2_07.svg
 - 將 Web 端頸部高度上限對齊 `pose_pre_v3.1` firmware：Head `7.0-16.0 cm`、Neck `10.0-14.0 cm`、step `0.5 cm`。
 - 修正微調、初始校正與 ESP32 Manual 啟動欄位的 Neck `max`，避免 Web 端允許輸入 firmware 會 clamp 掉的 `16.0 cm`。
 - 將側躺頸部離線預設值由 `16.0 cm` 改為 `14.0 cm`，避免未連線時第三畫面顯示與實際硬體上限不一致。
+
+## 2026-07-07 Reset 基準流程按鈕
+
+時間：`2026-07-07 16:08:44 CST (+0800)`
+
+- 在 `生物力學調整模式` 的仰躺高度微調與側躺高度微調畫面各新增一個 `Reset` 按鈕。
+- 按 `Reset` 會送出 `MANUAL,STARTUP,7.0,10.0`，讓 ESP32 離開 manual 控制並回到開機流程：先 `DRAIN_ALL` 吸乾，再依序 `FILL_MONITOR`、`FILL_NECK`、`FILL_HEAD` 回到 Head `7.0 cm` / Neck `10.0 cm` 基準。
+- `Reset` 不會清除 IndexedDB，也不會重新計算既有匯出資料；後續壓力、姿勢與指令紀錄會繼續累計到同一份 export 資料中。
 
 ### 截圖精靈畫面內容
 
