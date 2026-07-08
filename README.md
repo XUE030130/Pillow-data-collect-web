@@ -4,12 +4,12 @@
 
 本分支與本 README 基於 ESP32 韌體 `pose_pre_v3.1` 進行修改。Web 端已對應 `pose_pre_v3.1` 的高度上下限、0.5 cm 高度步進、手動/自動分類模式、ESP32 Manual 控制、壓力/高度監測、右側線圖監測與指令合輯。
 
-修改日期時間：`2026-07-07 16:49:57 CST (+0800)`
+修改日期時間：`2026-07-08 11:04:28 CST (+0800)`
 
 ## 對應版本
 
-- Web repo：`XUE030130/Pillow-data-collect-web`
-- Web branch：`spp3_BLE_cls_pre_v3.1-1`
+- Web repo：`NTUST-LSC-Lab/Pillow-data-collect-web`
+- Web branch：`spp3_BLE_cls_pre_v3.1`
 - ESP32 repo：`XUE030130/ipillow`
 - ESP32 branch：`pose_pre_v3.1`
 - 主要 Web 目錄：`spp3_BLE/`
